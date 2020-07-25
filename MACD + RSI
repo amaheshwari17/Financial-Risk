@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jun 30 14:44:16 2020
+
+@author: aayush
+"""
+
+
+#PORTFOLIO OF 4 STOCKS FOR SHORT/LONG TERM STRATEGY 
+#Change Data Points for t in the program
+
+# Import necessary libraries
+import yfinance as yf
+import datetime as dt
+import matplotlib.pyplot as plt
+import numpy as np
+from pandas_datareader import data as pdr
+
+#Calculate periodic returns of the stocks in the portfolio
+#Create our portfolio of equities
+tickers = ['NFLX','TSLA', 'AAL', 'GS']
+
+#Set the investment weights (I arbitrarily picked for example)
+weights = np.array([.25, .3, .15, .3])
+
+#Set an initial investment level
+initial_investment = 1000000
+
+#Download closing prices
+data = pdr.get_data_yahoo(tickers, start=dt.date.today()-dt.timedelta(1825), end=dt.date.today())
+
+w = weights.T #Transposing weights matrix
+
+data['Adj Close Combined'] =  data.iloc[:, 0:4].dot(w) #creating portfolio Adj Close Price
+
+#Define Data Points for time period (in days)
+t = 40   #Short term strategy , use 200 for long term strategy
+
+#Define function for MACD, a,b,c are parameteres for different periods to calculate EMA
+#ewm is used with mean () to calculate exponential weighted moving average for MACD and Signal Line
+def MACD(DF,a,b,c):
+    """typical values a = 12; b =26, c =9"""
+    df = DF.copy()   
+    df["MA_Fast"]=df["Adj Close Combined"].ewm(span=a,min_periods=a).mean() #Adj Close column taken from data, downloaded from yFinance
+    df["MA_Slow"]=df["Adj Close Combined"].ewm(span=b,min_periods=b).mean()
+    df["MACD"]=df["MA_Fast"]-df["MA_Slow"]  #formula to calculate MACD
+    df["Signal"]=df["MACD"].ewm(span=c,min_periods=c).mean() #Calculation of Signal line
+    df.dropna(inplace=True) #removing NaN values
+    return df   #return entire dataframe
+
+def RSI(DF,n):
+    "function to calculate RSI"
+    df = DF.copy()
+    df['delta']=df['Adj Close Combined'] - df['Adj Close Combined'].shift(1) #day over day in close price
+    df['gain']=np.where(df['delta']>=0,df['delta'],0) #np.where function is similar to IF function in excel
+    df['loss']=np.where(df['delta']<0,abs(df['delta']),0)
+    avg_gain = []  #creating empty list
+    avg_loss = []
+    gain = df['gain'].tolist()  #convert data series to list
+    loss = df['loss'].tolist()
+    for i in range(len(df)): #range is length of Dataframe
+        if i < n:
+            avg_gain.append(np.NaN)  #for first n = 14, it is definitely NaN value
+            avg_loss.append(np.NaN)  #hence used append(np.NaN)
+        elif i == n:
+            avg_gain.append(df['gain'].rolling(n).mean().tolist()[n])  #calculate average first, then convert into list
+            avg_loss.append(df['loss'].rolling(n).mean().tolist()[n])  #append them to empty lists created above
+        elif i > n:   #when row is greater than 14
+            avg_gain.append(((n-1)*avg_gain[i-1] + gain[i])/n)   #formula
+            avg_loss.append(((n-1)*avg_loss[i-1] + loss[i])/n)   #formula
+    df['avg_gain']=np.array(avg_gain)   #convert list to array in the dataframe
+    df['avg_loss']=np.array(avg_loss)   #convert list to array in the dataframe
+    df['RS'] = df['avg_gain']/df['avg_loss']   #Relative Strength
+    df['RSI'] = 100 - (100/(1+df['RS']))       #Relative Strength Index
+    df.dropna(inplace=True)
+    return df   #return entire dataframe
+
+# Visualization - plotting MACD/signal along with close price and volume for last 40 data points
+df = MACD(data, 12, 26, 9)   #calling MACD function for Portfolio
+df1 = RSI(data, 14)   #calling RSI function for Portfolio
+
+
+fig, axs = plt.subplots(3, sharex=True, sharey=False, figsize=(30,15))   #creating subplot figure
+#ticker1 Stock graphs
+axs[0].plot(df.iloc[-t:,-5])                              #plotting Adj Close price of Portfolio
+axs[0].set(ylabel='Adj Close')
+axs[0].set_title('Portfolio')
+axs[1].plot(df.iloc[-t:,-2], label='MACD')                #plotting MACD line for Portfolio
+axs[1].plot(df.iloc[-t:,-1], label='Signal')              #plotting Signal line for Portfolio
+axs[1].legend(loc='lower left')
+axs[1].set(ylabel='MACD/Signal')
+axs[2].plot(df1.iloc[-t:,-1])                             #plotting RSI line for Portfolio
+axs[2].axhline(70,color='green',ls='--')                  #plotting overbought indicator line
+axs[2].axhline(30,color='red',ls='--')                    #plotting oversold indicator line
+axs[2].set(ylabel='RSI')
+
+fig.suptitle('Portfolio with MACD+RSI', fontsize=28, fontweight='bold')
