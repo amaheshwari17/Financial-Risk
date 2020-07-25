@@ -17,3 +17,4 @@ There are mainly 4 types of technical indicators:
 4. Volume Indicators - Strength of a trend or continuous trading direction based on averaging
    Eg.: Chaikin Oscillator [leading]; On-Balance Volume (OBV) [leading]; Volume rate of change [lagging]
    
+I will be uploading programs for many of the technical indicators in this repository. Stay tuned!
