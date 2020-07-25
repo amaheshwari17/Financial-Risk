@@ -1,7 +1,9 @@
 # Technical-Indicators
 
 Technical indicators are future price signals, determined by mathematical computation on historic price, volume, or open interest information.
+
 Leading Indicators: trend is about to start
+
 Lagging Indicators: follows price action
 
 There are mainly 4 types of technical indicators:
