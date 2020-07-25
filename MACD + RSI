@@ -22,9 +22,6 @@ tickers = ['NFLX','TSLA', 'AAL', 'GS']
 #Set the investment weights (I arbitrarily picked for example)
 weights = np.array([.25, .3, .15, .3])
 
-#Set an initial investment level
-initial_investment = 1000000
-
 #Download closing prices
 data = pdr.get_data_yahoo(tickers, start=dt.date.today()-dt.timedelta(1825), end=dt.date.today())
 
