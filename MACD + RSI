@@ -91,3 +91,4 @@ axs[2].axhline(30,color='red',ls='--')                    #plotting oversold ind
 axs[2].set(ylabel='RSI')
 
 fig.suptitle('Portfolio with MACD+RSI', fontsize=28, fontweight='bold')
+
