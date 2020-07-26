@@ -1,4 +1,4 @@
-##Moving Average Convergence Divergence (MACD): shows relationship between two Moving Averages (MA) for a security's price.
+Moving Average Convergence Divergence (MACD): shows relationship between two Moving Averages (MA) for a security's price.
 Calculated by subtracting 26-period EMA from 12-period EMA. (EMA - Exponential Moving Average)
 Inference- MACD > Signal Line - Buy suggestion; MACD < Signal Line - Sell suggestion
 
